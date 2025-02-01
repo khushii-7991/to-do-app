@@ -61,16 +61,16 @@ app.post('/signin', async (req, res) => {
 app.post('/create-todo', async (req, res) => {
     const username = req.body.username;
     const todo = req.body.todo;
-    if(!todo){
+    if (!todo) {
         res.json({
-            msg:"likho toh phle kachu"
+            msg: "likho toh phle kachu"
         })
         return;
     }
     const user = await User.findOne({ username: username })
 
     if (user) {
-        const response =await User.updateOne(
+        const response = await User.updateOne(
             { username: username },
             { $push: { todos: todo } }
         )
@@ -83,6 +83,48 @@ app.post('/create-todo', async (req, res) => {
         })
     }
 })
+
+app.get('/get-todo', async (req, res) => {
+    const username = req.body.username;
+
+    const user = await User.findOne({
+        username: username,
+    })
+    if (!user) {
+        res.json({
+            msg: "username doesnt exist"
+        });
+    }
+
+    res.json({
+        todos: user.todos
+    });
+});
+
+
+app.post('/delete-todo', async (req, res) => {
+    const username = req.body.username;
+    const deleteTodo = req.body.todo;
+
+    const user = await User.findOne({ username: username })
+    if (!user) {
+        res.json({
+            msg: "username doesnt exist"
+        })
+        return;
+    }
+
+    const newTodo = user.todos.filter(todo => {
+        return todo != deleteTodo
+    });
+
+    const updatedUser = await User.updateOne(
+        { username: username }, // kisko update krna hai? username ko
+        { todos: newTodo } // kis se update krna hai
+    )
+    res.json(updatedUser);
+})
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
